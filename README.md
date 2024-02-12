@@ -12,7 +12,7 @@
 2. age (static)
 3. work (static)
 4. trip purpose
-5. transport
+5. transport type
 6. longitude
 7. latitude
 8. 國土利用 https://www.chikyu.ac.jp/USE/navi9-e.html

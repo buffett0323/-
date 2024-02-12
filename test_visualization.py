@@ -289,12 +289,10 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     columns_to_round = [i for i in range(test_2d_orig.shape[1]) if i not in [6, 7]]
     test_2d_orig[:, columns_to_round] = np.round(test_2d_orig[:, columns_to_round]).astype(int)
     test_data_orig = test_2d_orig.reshape((test_data.shape[0], LOOKBACK, test_data.shape[2]))
-
     last_data = np.expand_dims(np.array(test_data[:, -1, :]), axis=1)
     test_data_orig = np.concatenate((test_data_orig, last_data), axis=1) # this is the whole data
     
-    test_data_wrong = test_data_orig[wrong_mask] 
-    test_data_right = test_data_orig[right_mask]
+    test_data_wrong, test_data_right = test_data_orig[wrong_mask], test_data_orig[right_mask]
   
     # Get the base map
     gdf2 = gpd.read_file('../Japan_Data/gadm41_JPN_shp/gadm41_JPN_2.shp')
@@ -321,16 +319,15 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
 
     adj_mat_df = pd.DataFrame(adj_mat_np, index=gdf2.y_id, columns=gdf2.y_id)
     
-    # Get the correct count by using adjacency matrix
-    adj_cor_mask = []
-    for act, pr in zip(test_labels, pred):
-        if adj_mat_df.loc[int(act), int(pr)] == 1:
-            adj_cor_mask.append(True)
-        else:
-            adj_cor_mask.append(False)
+    # Get the wrongly predicted adjacency mask
+    adj_wrong_mask = [False if adj_mat_df.loc[int(act), int(pr)] == 1 else True for act, pr in zip(test_labels, pred)]
+    y_wrong = [val for val, mask in zip(test_labels, adj_wrong_mask) if mask]
+    pred_wrong = [val for val, mask in zip(pred, adj_wrong_mask) if mask]    
 
-    y_wrong = [val for val, mask in zip(test_labels, adj_cor_mask) if mask]
-    pred_wrong = [val for val, mask in zip(pred, adj_cor_mask) if mask]    
+
+
+    """ Statistics for wrongly prediction """
+
 
 
     # Use folium to create the map
@@ -343,7 +340,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
         tmp_lat = test_data_wrong[i, :LOOKBACK, 7].tolist()
         trip_p = [trip_purpose[int(j)] for j in test_data_wrong[i, :LOOKBACK, 4]]
         trans = [transport_type[int(j)] for j in test_data_wrong[i, :LOOKBACK, 5]] 
-        info_list = [f'Time:{idx};\n Trip_Purpose:{trip_p[idx]};\n Transport_Type:{trans[idx]}' for idx in range(LOOKBACK)]
+        info_list = [f'Time:{idx+1}; Trip_Purpose:{trip_p[idx]}; Transport_Type:{trans[idx]}' for idx in range(LOOKBACK)]
         coordinates_sets.append((l1, l2, info) for l1, l2, info in zip(tmp_lon, tmp_lat, info_list))
         y_actual.append(y_wrong[i])
         
@@ -370,21 +367,30 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     m.save('visualization/y_level2.html')
 
 
+
     """ 1. Do the data analysis for trip purpose """
     acc_tp = dict()
     for tp, tp_val in trip_purpose.items():
-        if tp != 99:
-            mask = [True if i == tp else False for i in test_data_orig[:, -1, 4].tolist()]
-            test_seq1 = test_seq[mask]
-            test_static1 = test_static[mask]
-            test_labels1 = [val for val, mask in zip(test_labels, mask) if mask]
+        # if tp != 99:
+        mask = [True if i == tp else False for i in test_data_orig[:, -2, 4].tolist()]
+        test_seq1 = test_seq[mask]
+        test_static1 = test_static[mask]
+        test_labels1 = [val for val, mask in zip(test_labels, mask) if mask]
+        
+        model.eval()
+        with torch.no_grad():
+            outputs1 = model(test_seq1, test_static1)
+            pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
+            # accuracy1 = accuracy_score(test_labels1, pred1)
+            # acc_tp[tp_val] = round(accuracy1 * 100, 1)
             
-            model.eval()
-            with torch.no_grad():
-                outputs1 = model(test_seq1, test_static1)
-                pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
-                accuracy1 = accuracy_score(test_labels1, pred1)
-                acc_tp[tp_val] = round(accuracy1 * 100, 1)
+            # Get the correct count by using adjacency matrix
+            correct_cnt = 0
+            for act, pr in zip(test_labels1, pred1):
+                if adj_mat_df.loc[act, pr] == 1:
+                    correct_cnt += 1
+            acc_tp[tp_val] = round(100 * correct_cnt/len(pred1), 2)
+            
 
     sorted_accuracy = sorted(acc_tp.items(), key=lambda x: x[1], reverse=True)
     labels, accuracies = zip(*sorted_accuracy)
@@ -406,19 +412,26 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     """ 2. Do the data analysis for transport type """
     acc_tt = dict()
     for tt, tt_val in transport_type.items():
-        if tt != 15 and tt != 97 and tt != 99:
-            mask = [True if i == tt else False for i in test_data_orig[:, -1, 5].tolist()]
+        if tt != 99: # tt != 15 and tt != 97 and
+            mask = [True if i == tt else False for i in test_data_orig[:, -2, 5].tolist()]
             if mask.count(True) == 0: continue
             test_seq1 = test_seq[mask]
             test_static1 = test_static[mask]
             test_labels1 = [val for val, mask in zip(test_labels, mask) if mask]
-            
+                
             model.eval()
             with torch.no_grad():
                 outputs1 = model(test_seq1, test_static1)
                 pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
-                accuracy1 = accuracy_score(test_labels1, pred1)
-                acc_tt[tt_val] = round(accuracy1 * 100, 1)
+                # accuracy1 = accuracy_score(test_labels1, pred1)
+                # acc_tt[tt_val] = round(accuracy1 * 100, 1)
+                
+                # Get the correct count by using adjacency matrix
+                correct_cnt = 0
+                for act, pr in zip(test_labels1, pred1):
+                    if adj_mat_df.loc[act, pr] == 1:
+                        correct_cnt += 1
+                acc_tt[tt_val] = round(100 * correct_cnt/len(pred1), 2)
 
     sorted_accuracy = sorted(acc_tt.items(), key=lambda x: x[1], reverse=True)
     labels, accuracies = zip(*sorted_accuracy)
@@ -438,43 +451,8 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     pio.write_image(fig, file_path)
     
     
-    """ 3. Do the data analysis for land use """
-    acc_ld = dict()
-    for ld, ld_val in landuse.items():
-        if ld != 6 and ld != 7 and ld != 8:
-            mask = [True if i == ld else False for i in test_data_orig[:, -1, 8].tolist()]
-            if mask.count(True) == 0: continue
-            test_seq1 = test_seq[mask]
-            test_static1 = test_static[mask]
-            test_labels1 = [val for val, mask in zip(test_labels, mask) if mask]
-            
-            model.eval()
-            with torch.no_grad():
-                outputs1 = model(test_seq1, test_static1)
-                pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
-                accuracy1 = accuracy_score(test_labels1, pred1)
-                acc_ld[ld_val] = round(accuracy1 * 100, 1)
-
-    sorted_accuracy = sorted(acc_ld.items(), key=lambda x: x[1], reverse=True)
-    labels, accuracies = zip(*sorted_accuracy)
-
-
-    # Create the Plotly bar chart
-    fig = go.Figure(data=[go.Bar(x=labels, y=accuracies, text=accuracies, textposition='auto', marker_color='lightblue')])
-    fig.update_layout(
-        title='Different Land Use', 
-        xaxis_title='Land Use', 
-        yaxis_title='Accuracy (%)',
-        yaxis=dict(range=[0,100]),
-        template='plotly_white' 
-    )
     
-    # Save the figure to a file
-    file_path = 'plotly_result/hybrid_lstm_land_use.png'
-    pio.write_image(fig, file_path)
-    
-    
-    """ 4. Do the data analysis on the last time stamp """
+    """ 3. Do the data analysis on the last time stamp """
     acc_tm = dict()
     time_interval = {
         "8-10": [8,10],
@@ -493,8 +471,69 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
         with torch.no_grad():
             outputs1 = model(test_seq1, test_static1)
             pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
-            accuracy1 = accuracy_score(test_labels1, pred1)
-            acc_tm[tm] = round(accuracy1 * 100, 1)
+            # accuracy1 = accuracy_score(test_labels1, pred1)
+            # acc_tm[tm] = round(accuracy1 * 100, 1)
+            
+            # Get the correct count by using adjacency matrix
+            correct_cnt = 0
+            for act, pr in zip(test_labels1, pred1):
+                if adj_mat_df.loc[act, pr] == 1:
+                    correct_cnt += 1
+            acc_tm[tm] = round(100 * correct_cnt/len(pred1), 2)
+
+    # Create the Plotly bar chart
+    fig = go.Figure(data=[go.Bar(
+        x=list(acc_tm.keys()),
+        y=list(acc_tm.values()),
+        text=[str(val) for val in acc_tm.values()],
+        textposition='auto', marker_color='lightblue')])
+    fig.update_layout(
+        title='Different Time Position', 
+        xaxis_title='Time zone', 
+        yaxis_title='Accuracy (%)',
+        yaxis=dict(range=[0,100]),
+        template='plotly_white' 
+    )
+    
+    # Save the figure to a file
+    file_path = 'plotly_result/hybrid_lstm_time_position.png'
+    pio.write_image(fig, file_path)
+    
+    
+    """ 4. Do the data analysis on the last time INTERVAL """
+    acc_tm = dict()
+    time_interval = {
+        "0~20": [0, 20],
+        "20~40": [20, 40],
+        "40~60": [40, 60],
+        "60~80": [60, 80],
+        "80~100": [80, 100],
+        "100~120": [100, 120],
+        "120~140": [120, 140],
+        "140~160": [140, 160],
+        "160~180": [160, 180],
+        "180~": [180, 1e5]
+    }
+    for tm, tm_val in time_interval.items():
+        mask = [True if i >= tm_val[0] and i < tm_val[1] else False for i in test_data_orig[:, -2, 0].tolist()]
+        if mask.count(True) == 0: continue
+        test_seq1 = test_seq[mask]
+        test_static1 = test_static[mask]
+        test_labels1 = [val for val, mask in zip(test_labels, mask) if mask]
+        
+        model.eval()
+        with torch.no_grad():
+            outputs1 = model(test_seq1, test_static1)
+            pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
+            # accuracy1 = accuracy_score(test_labels1, pred1)
+            # acc_tm[tm] = round(accuracy1 * 100, 1)
+            
+            # Get the correct count by using adjacency matrix
+            correct_cnt = 0
+            for act, pr in zip(test_labels1, pred1):
+                if adj_mat_df.loc[act, pr] == 1:
+                    correct_cnt += 1
+            acc_tm[tm] = round(100 * correct_cnt/len(pred1), 2)
 
     # Create the Plotly bar chart
     fig = go.Figure(data=[go.Bar(
@@ -511,8 +550,8 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     )
     
     # Save the figure to a file
-    file_path = 'plotly_result/hybrid_lstm_time.png'
-    pio.write_image(fig, file_path)
+    file_path = 'plotly_result/hybrid_lstm_time_interval.png'
+    pio.write_image(fig, file_path) 
     
     
     """ 5. Do the data analysis on different age """
@@ -530,9 +569,15 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
         with torch.no_grad():
             outputs1 = model(test_seq1, test_static1)
             pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
-            accuracy1 = accuracy_score(test_labels1, pred1)
-            acc_age[ag_val] = round(accuracy1 * 100, 1)
+            # accuracy1 = accuracy_score(test_labels1, pred1)
+            # acc_age[ag_val] = round(accuracy1 * 100, 1)
 
+            # Get the correct count by using adjacency matrix
+            correct_cnt = 0
+            for act, pr in zip(test_labels1, pred1):
+                if adj_mat_df.loc[act, pr] == 1:
+                    correct_cnt += 1
+            acc_age[ag_val] = round(100 * correct_cnt/len(pred1), 2)
 
     # Create the Plotly bar chart
     fig = go.Figure(data=[go.Bar(
@@ -554,58 +599,58 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     
     
     
-    """ 6. Use ML Methods to get the features """
-    X_seq = test_seq.reshape((test_seq.shape[0], test_seq.shape[1] * test_seq.shape[2]))
-    X_train = np.concatenate((test_static, X_seq), axis=1)
-    y_train = [1 if i == True else 0 for i in wrong_mask]
+    # """ 6. Use ML Methods to get the features """
+    # X_seq = test_seq.reshape((test_seq.shape[0], test_seq.shape[1] * test_seq.shape[2]))
+    # X_train = np.concatenate((test_static, X_seq), axis=1)
+    # y_train = [1 if i == True else 0 for i in wrong_mask]
 
     
-    rf_model = RandomForestClassifier()
-    rf_model.fit(X_train, y_train)
+    # rf_model = RandomForestClassifier()
+    # rf_model.fit(X_train, y_train)
 
-    importances = rf_model.feature_importances_
-    col = ["Gender", "Age", "Work"]
-    for i in range(LOOKBACK):
-        for j in ["Time_diff", "Trip_purpose", "Transport", "Long", "Lat", "Landuse", "LandCover"]:
-            col.append(f'{j}_{i+1}')
+    # importances = rf_model.feature_importances_
+    # col = ["Gender", "Age", "Work"]
+    # for i in range(LOOKBACK):
+    #     for j in ["Time_diff", "Trip_purpose", "Transport", "Long", "Lat", "Landuse", "LandCover"]:
+    #         col.append(f'{j}_{i+1}')
     
-    # Create a DataFrame for plotting
-    importance_df = pd.DataFrame({
-        'Feature': col,
-        'Importance': importances
-    })
+    # # Create a DataFrame for plotting
+    # importance_df = pd.DataFrame({
+    #     'Feature': col,
+    #     'Importance': importances
+    # })
 
-    # Sort the DataFrame by importance for better visualization
-    importance_df = importance_df.sort_values('Importance', ascending=False)
+    # # Sort the DataFrame by importance for better visualization
+    # importance_df = importance_df.sort_values('Importance', ascending=False)
 
-    # Create the bar plot using Plotly
-    fig = px.bar(importance_df, x='Importance', y='Feature', orientation='h', title='Feature Importances')
-    fig.update_layout(yaxis={'categoryorder':'total ascending'})
-    file_path = 'plotly_result/rf_importance_plotly.png'
-    pio.write_image(fig, file_path)
+    # # Create the bar plot using Plotly
+    # fig = px.bar(importance_df, x='Importance', y='Feature', orientation='h', title='Feature Importances')
+    # fig.update_layout(yaxis={'categoryorder':'total ascending'})
+    # file_path = 'plotly_result/rf_importance_plotly.png'
+    # pio.write_image(fig, file_path)
     
     
     
-    """ 7. Final analysis for the most importance part """
-    time_diff_last_wrong = test_data_wrong[:, LOOKBACK-1, 0].tolist()
-    time_diff_last_right = test_data_right[:, LOOKBACK-1, 0].tolist()
+    # """ 7. Final analysis for the most importance part """
+    # time_diff_last_wrong = test_data_wrong[:, LOOKBACK-1, 0].tolist()
+    # time_diff_last_right = test_data_right[:, LOOKBACK-1, 0].tolist()
 
-    fig = go.Figure()
-    fig.add_trace(go.Box(y=time_diff_last_wrong, name='wrong'))
-    fig.add_trace(go.Box(y=time_diff_last_right, name='right'))
+    # fig = go.Figure()
+    # fig.add_trace(go.Box(y=time_diff_last_wrong, name='wrong'))
+    # fig.add_trace(go.Box(y=time_diff_last_right, name='right'))
 
-    fig.update_layout(
-        title='Box Plot of last time diff for wrong and right prediction',
-        yaxis_title='Values',
-        boxmode='group'
-    )
+    # fig.update_layout(
+    #     title='Box Plot of last time diff for wrong and right prediction',
+    #     yaxis_title='Values',
+    #     boxmode='group'
+    # )
 
-    # Show the plot
-    # fig.show()
-    fig.write_html('plotly_result/last_time_diff.html')
+    # # Show the plot
+    # # fig.show()
+    # fig.write_html('plotly_result/last_time_diff.html')
     
-    file_path = 'plotly_result/last_time_diff.png'
-    pio.write_image(fig, file_path)
+    # file_path = 'plotly_result/last_time_diff.png'
+    # pio.write_image(fig, file_path)
 
     
 
