@@ -1,2 +1,6 @@
 data/
-
+visualization/
+kmz_2000/
+model_pth/
+plotly_result/
+new_model_pth/
