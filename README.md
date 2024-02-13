@@ -1,4 +1,4 @@
-# MEMO
+# README
 
 資料集：原始資料集做Sequence、前處理<br>
 結合國土利用資料kmz2000(seq_processing)<br>
@@ -16,7 +16,8 @@
 6. longitude
 7. latitude
 8. 國土利用 https://www.chikyu.ac.jp/USE/navi9-e.html
-9.  遙測資料
+9.  遙測資料 // hour
+---------------------
 10. level 1 y label
 11. level 2 y label
 
@@ -86,8 +87,18 @@ num_layers = 2, lr = 0.005, no batch, drop_prob = 0
 | 64 | 86.72 % | 86.69 % | 86.55 % |
 | 128 | 86.85 % | 86.74 % | 86.7 % | 
 
-num_layers = 3
-hl, fc: 64, 64: 86.91 %
-hl: 128, fc: 64; 87.11 %
+num_layers = 3, fc_layers = 64
+| hidden layers | 64 | 128 |
+|---|---|---|
+| accuracy | 86.91% | 87.11% |
 
 Best: Hybrid_LSTM_model_4_hl_128_fc_64_lr_0.005_nl_3_dr0.pth
+
+
+### 0212
+New model, adding hour and remove 遙測資料
+fc_layers = 64, lr = 0.005
+| hl, nl | 2 | 3 |
+|----|-------|-----|
+| 64 | 0% | 0% |
+| 128 | 0% | 85.58 % |

@@ -326,10 +326,20 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
 
 
 
-    """ Statistics for wrongly prediction """
-
-
-
+    """ Statistics for wrongly prediction only for seq_length=4 """
+    mode1, mode2, mode3, mode4 = 0, 0, 0, 0
+    for i in range(test_data_orig.shape[0]):
+        if 97 not in test_data_orig[i, :, 5].tolist():
+            mode1 += 1
+        elif test_data_orig[i, 1, 5] == 97 and test_data_orig[i, 3, 5] == 97:
+            mode2 += 1
+        elif test_data_orig[i, 0, 5] == 97 and test_data_orig[i, 2, 5] == 97:
+            mode3 += 1
+        else:
+            mode4 += 1
+    print(mode1, mode2, mode3, mode4)
+    
+    
     # Use folium to create the map
     gdf2_json = json.loads(gdf2.to_json())
     m = folium.Map(location=[35.5, 139.75], zoom_start=9,  tiles='CartoDB positron')
