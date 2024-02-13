@@ -1,4 +1,5 @@
 # Train the model for level 2 new data same model
+# Best model: Hybrid_LSTM_new_model_4_hl_128_fc_64_lr_0.005_nl_3.pth
 import os
 import torch
 import pandas as pd
@@ -28,16 +29,13 @@ md_path = 'new_model_pth/'
 def train_and_test(model_name = 'Hybrid_LSTM_new',
     hidden_layers = 128,
     num_layers = 3,
-    lr_rate = 5e-3, # 0.005,
-    batch_size = 64, 
     fc_layer = 64,
-    step_size = 5, gamma = 0.5, l2_lambda = 0.001, min_grp = 50, patience = 2,
+    min_grp = 50,
     ohe = False, remove_min_grp = True,
     md_param = ''
 ):
     
     LOOKBACK = SEQ_LENGTH - 1
-    num_epochs = 200
     
     # Sequence data with sequence length
     seq_data = np.load(f'{path}/newDataShift_{SEQ_LENGTH}.npy', allow_pickle=True) # (6, 770400, 8)
@@ -106,52 +104,12 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
 
     # Create a DataLoader for the dataset
     train_seq = np.concatenate((train_data[:, :, 0:1], train_data[:, :, 4:]), axis=2)
-    train_static = train_data[:, 0, 1:4] # x1, x2, x3
-    val_seq = torch.FloatTensor(np.concatenate((val_data[:, :, 0:1], val_data[:, :, 4:]), axis=2)).to(device)
-    val_static = torch.FloatTensor(val_data[:, 0, 1:4]).to(device)
+    train_static = train_data[:, 0, 1:4]
     test_seq = torch.FloatTensor(np.concatenate((test_data[:, :, 0:1], test_data[:, :, 4:]), axis=2)).to(device)
     test_static = torch.FloatTensor(test_data[:, 0, 1:4]).to(device)
-    
-    # Dataset: sequence_data, static_feature_data, label_data
-    train_dataset = SplitDataset(train_seq, train_static, train_labels) 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    
-    # Create LSTM model, optimizer, and loss function
-    if model_name == 'Hybrid_LSTM_new':
-        model = HybridLSTM(input_size=train_seq.shape[2], hidden_size=hidden_layers, num_layers=num_layers, 
-                           output_size=len(set(y_cluster)), static_feature_size=train_static.shape[1], fc_layer=fc_layer).to(device)
-
 
     # Define the loss function with weights
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr_rate)
-    scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
-
-    # Training
-    train_losses = []
-    pat, best_val = 0, 1e10
-    
-    for epoch in tqdm(range(num_epochs)):
-        tr_loss = training_hybrid(train_loader, model, criterion, optimizer, l2_lambda=l2_lambda)
-        train_losses.append(tr_loss)
-
-        scheduler.step()
-
-        # Early stopping Validation
-        if (epoch) % 5 == 0:
-            model.eval()
-            with torch.no_grad():
-                outputs = model(val_seq, val_static)
-                val_loss = criterion(outputs, val_labels)
-                if val_loss.item() < best_val:
-                    pat, best_val = 0, val_loss.item()
-                else:
-                    pat += 1
-                    if pat >= patience: break
-
-
-    # Store the model
-    torch.save(model.state_dict(), os.path.join(md_path, f'{model_name}_model_{SEQ_LENGTH}_{md_param}.pth'))
 
     # Basic testing
     if model_name == 'Hybrid_LSTM_new':
@@ -165,23 +123,14 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
 
 # Tuning model
 if __name__ == '__main__':
-    hl_list = [64, 128]
-    fc_list = [64]
-    lr_list = [0.005]
-    nl_list = [2,3] 
-    for hl in hl_list:
-        for fc in fc_list:
-            for lr in lr_list:
-                for nl in nl_list:
-                    if nl == 2 and hl == 64:
-                        continue
-                    print('----------------------------------')
-                    print(f'hl_{hl}_fc_{fc}_lr_{lr}_nl_{nl}')
-                    train_and_test(model_name = 'Hybrid_LSTM_new', 
-                                hidden_layers = hl,
-                                lr_rate = lr,
-                                fc_layer = fc,
-                                num_layers = nl,
-                                md_param = f'hl_{hl}_fc_{fc}_lr_{lr}_nl_{nl}')
-        
+    hl = 128
+    nl = 3
+    fc = 64
+    lr = 0.005
+    train_and_test(model_name = 'Hybrid_LSTM_new', 
+                    hidden_layers = hl,
+                    fc_layer = fc,
+                    num_layers = nl,
+                    md_param = f'hl_{hl}_fc_{fc}_lr_{lr}_nl_{nl}')
+
 

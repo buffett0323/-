@@ -283,15 +283,12 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     right_mask = [True if i == j else False for i, j in zip(test_labels, pred)]
     
     # Get the original data
-    test_2d = test_data[:, :LOOKBACK, :].reshape((test_data.shape[0] * LOOKBACK, test_data.shape[2]))
+    test_2d = test_data.reshape((test_data.shape[0] * test_data.shape[1], test_data.shape[2]))
     test_2d_orig = x_scaler.inverse_transform(test_2d)
  
     columns_to_round = [i for i in range(test_2d_orig.shape[1]) if i not in [6, 7]]
     test_2d_orig[:, columns_to_round] = np.round(test_2d_orig[:, columns_to_round]).astype(int)
-    test_data_orig = test_2d_orig.reshape((test_data.shape[0], LOOKBACK, test_data.shape[2]))
-    last_data = np.expand_dims(np.array(test_data[:, -1, :]), axis=1)
-    test_data_orig = np.concatenate((test_data_orig, last_data), axis=1) # this is the whole data
-    
+    test_data_orig = test_2d_orig.reshape((test_data.shape[0], test_data.shape[1], test_data.shape[2]))
     test_data_wrong, test_data_right = test_data_orig[wrong_mask], test_data_orig[right_mask]
   
     # Get the base map
@@ -327,17 +324,17 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
 
 
     """ Statistics for wrongly prediction only for seq_length=4 """
-    mode1, mode2, mode3, mode4 = 0, 0, 0, 0
-    for i in range(test_data_orig.shape[0]):
-        if 97 not in test_data_orig[i, :, 5].tolist():
-            mode1 += 1
-        elif test_data_orig[i, 1, 5] == 97 and test_data_orig[i, 3, 5] == 97:
-            mode2 += 1
-        elif test_data_orig[i, 0, 5] == 97 and test_data_orig[i, 2, 5] == 97:
-            mode3 += 1
-        else:
-            mode4 += 1
-    print(mode1, mode2, mode3, mode4)
+    # mode1, mode2, mode3, mode4 = 0, 0, 0, 0
+    # for i in range(test_data_orig.shape[0]):
+    #     if 97 not in test_data_orig[i, :, 5].tolist():
+    #         mode1 += 1
+    #     elif test_data_orig[i, 1, 5] == 97 and test_data_orig[i, 3, 5] == 97:
+    #         mode2 += 1
+    #     elif test_data_orig[i, 0, 5] == 97 and test_data_orig[i, 2, 5] == 97:
+    #         mode3 += 1
+    #     else:
+    #         mode4 += 1
+    # print(mode1, mode2, mode3, mode4)
     
     
     # Use folium to create the map
@@ -382,7 +379,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     acc_tp = dict()
     for tp, tp_val in trip_purpose.items():
         # if tp != 99:
-        mask = [True if i == tp else False for i in test_data_orig[:, -2, 4].tolist()]
+        mask = [True if i == tp else False for i in test_data_orig[:, -1, 4].tolist()]
         test_seq1 = test_seq[mask]
         test_static1 = test_static[mask]
         test_labels1 = [val for val, mask in zip(test_labels, mask) if mask]
@@ -423,7 +420,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     acc_tt = dict()
     for tt, tt_val in transport_type.items():
         if tt != 99: # tt != 15 and tt != 97 and
-            mask = [True if i == tt else False for i in test_data_orig[:, -2, 5].tolist()]
+            mask = [True if i == tt else False for i in test_data_orig[:, -1, 5].tolist()]
             if mask.count(True) == 0: continue
             test_seq1 = test_seq[mask]
             test_static1 = test_static[mask]
@@ -462,7 +459,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     
     
     
-    """ 3. Do the data analysis on the last time stamp """
+    """ 3. Do the data analysis on the last TIME HOUR """
     acc_tm = dict()
     time_interval = {
         "8-10": [8,10],
@@ -471,7 +468,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
         "19-24": [19,24]
     }
     for tm, tm_val in time_interval.items():
-        mask = [True if i >= tm_val[0] and i < tm_val[1] else False for i in test_data_orig[:, -1, 0].tolist()]
+        mask = [True if i >= tm_val[0] and i < tm_val[1] else False for i in test_data_orig[:, -1, -1].tolist()]
         if mask.count(True) == 0: continue
         test_seq1 = test_seq[mask]
         test_static1 = test_static[mask]
@@ -498,7 +495,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
         text=[str(val) for val in acc_tm.values()],
         textposition='auto', marker_color='lightblue')])
     fig.update_layout(
-        title='Different Time Position', 
+        title='Last Time Position', 
         xaxis_title='Time zone', 
         yaxis_title='Accuracy (%)',
         yaxis=dict(range=[0,100]),
@@ -510,7 +507,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     pio.write_image(fig, file_path)
     
     
-    """ 4. Do the data analysis on the last time INTERVAL """
+    """ 4. Do the data analysis on the last TIME INTERVAL """
     acc_tm = dict()
     time_interval = {
         "0~20": [0, 20],
@@ -525,7 +522,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
         "180~": [180, 1e5]
     }
     for tm, tm_val in time_interval.items():
-        mask = [True if i >= tm_val[0] and i < tm_val[1] else False for i in test_data_orig[:, -2, 0].tolist()]
+        mask = [True if i >= tm_val[0] and i < tm_val[1] else False for i in test_data_orig[:, -1, 0].tolist()]
         if mask.count(True) == 0: continue
         test_seq1 = test_seq[mask]
         test_static1 = test_static[mask]
@@ -564,7 +561,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     pio.write_image(fig, file_path) 
     
     
-    """ 5. Do the data analysis on different age """
+    """ 5. Do the data analysis on different AGE """
     acc_age = dict()
     for ag, ag_val in age_hierarchy.items():
         

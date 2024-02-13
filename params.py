@@ -1,6 +1,7 @@
 '''Parameters'''
 import torch 
 SEQ_LENGTH = 4
+NEW_SEQ = 2
 CUT = 15
 device = torch.device("cpu")
 
