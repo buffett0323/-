@@ -1,4 +1,4 @@
-# Train the model for level 2
+# Train the model for level 2 new data same model
 import os
 import torch
 import pandas as pd
@@ -161,6 +161,7 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
     model.load_state_dict(torch.load(os.path.join(md_path, f'{model_name}_model_{SEQ_LENGTH}_{md_param}.pth')))
     model.eval()
     return testing_hybrid(model, criterion, test_seq, test_static, test_data, test_labels, x_scaler, len(set(y_cluster)), md_param)
+
 
 # Tuning model
 if __name__ == '__main__':
