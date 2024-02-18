@@ -145,9 +145,9 @@ def train_and_test(model_name = 'Hybrid_LSTM_trans',
 
 # Tuning model
 if __name__ == '__main__':
-    hl_list = [64, 128]
+    hl_list = [128]
     fc_list = [64]
-    lr_list = [0.005, 0.01]
+    lr_list = [0.01]
     nl_list = [3] 
     for hl in hl_list:
         for fc in fc_list:

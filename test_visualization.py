@@ -205,27 +205,29 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
     gdf2 = gdf2[gdf2["GID_2"].isin(y_pd["y_map_label"])]
     gdf2 = gdf2.merge(y_pd, left_on='GID_2', right_on='y_map_label')
 
-    gdf2.boundary.plot(ax=ax, color='lightblue', label='Level 2')
-    gdf1.boundary.plot(ax=ax, color='black', label='Level 1', alpha=0.2)
+    gdf2.boundary.plot(ax=ax, color='lightblue', label='Level 2', alpha=0.8, linewidth=0.2)
+    gdf1.boundary.plot(ax=ax, color='black', label='Level 1', alpha=0.2, linewidth=0.5)
     gdf2.plot(column='acc_float', ax=ax, legend=True, cmap='OrRd')
 
 
-    # Annotate the plot
-    for idx, row in gdf2.iterrows():
-        centroid = row.geometry.centroid # Get the centroid of the polygon
-        plt.annotate(text=row['acc_frac'], xy=(centroid.x, centroid.y), xytext=(3,3), ha='center', va='center', fontsize=4, textcoords="offset points")
+    # # Annotate the plot
+    # for idx, row in gdf2.iterrows():
+    #     centroid = row.geometry.centroid # Get the centroid of the polygon
+    #     plt.annotate(text=row['acc_frac'], xy=(centroid.x, centroid.y), xytext=(3,3), ha='center', va='center', fontsize=4, textcoords="offset points")
 
-    longitude_range = [round(min_lon, 1) - 0.1 , round(max_lon, 1) + 0.1]
-    latitude_range = [round(min_lat, 1) - 0.1, round(max_lat, 1) + 0.1]
+    longitude_range = [138.7, 140.5]
+    latitude_range = [34.8, 36.5]
     ax.set_xlim(longitude_range)
     ax.set_ylim(latitude_range)
+    ax.tick_params(axis='x', labelsize=7)  
+    ax.tick_params(axis='y', labelsize=7)
     ax.legend()
 
     accuracy = accuracy_score(test_labels.cpu(), pred.cpu())
-    plt.title(f'Japan Level_2 Y Label Test Accuracy = {round(accuracy*100, 2)}%')
+    plt.title(f'Japan Level 2 Prediction: Test Accuracy = {round(accuracy*100, 2)}%')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
-    plt.savefig(f'{path}/visual_lv2_test_seq_{SEQ_LENGTH}_{md_param}.jpg')
+    plt.savefig(f'{path}/visual_lv2_test_seq_{SEQ_LENGTH}_{md_param}.png', dpi=300)
     # plt.show()
     
     
@@ -324,17 +326,15 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
 
 
     """ Statistics for wrongly prediction only for seq_length=4 """
-    # mode1, mode2, mode3, mode4 = 0, 0, 0, 0
-    # for i in range(test_data_orig.shape[0]):
-    #     if 97 not in test_data_orig[i, :, 5].tolist():
-    #         mode1 += 1
-    #     elif test_data_orig[i, 1, 5] == 97 and test_data_orig[i, 3, 5] == 97:
-    #         mode2 += 1
-    #     elif test_data_orig[i, 0, 5] == 97 and test_data_orig[i, 2, 5] == 97:
-    #         mode3 += 1
-    #     else:
-    #         mode4 += 1
-    # print(mode1, mode2, mode3, mode4)
+    tp_dict = dict()
+    for i in trip_purpose.values():
+        tp_dict[i] = 0
+        
+    for i in range(test_data_orig.shape[0]):
+        if adj_wrong_mask[i]:
+            tp_dict[trip_purpose[test_data_orig[i, -1, 4]]] += 1
+    
+    print(tp_dict)
     
     
     # Use folium to create the map
