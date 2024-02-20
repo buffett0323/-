@@ -54,29 +54,29 @@ ax = fig.add_subplot(1,1,1, projection=ccrs.PlateCarree())
 # Set the extent to the geographical bounds of the image
 ax.set_extent([float(west), float(east), float(south), float(north)], crs=ccrs.PlateCarree())
 ax.imshow(image, origin='upper', extent=[float(west), float(east), float(south), float(north)], transform=ccrs.PlateCarree())
-# ax.coastlines()
 ax.gridlines(draw_labels=True)
 ax.axis('off')  # Turn off axis numbers and ticks
 ax.set_xticks([], crs=ccrs.PlateCarree())
 ax.set_yticks([], crs=ccrs.PlateCarree())
 ax.xaxis.set_visible(False)
 ax.yaxis.set_visible(False)
+plt.show()
 
-gdf1 = gpd.read_file('../Japan_Data/gadm41_JPN_shp/gadm41_JPN_1.shp')
-gdf1.boundary.plot(ax=ax, color='gray', label='Level 1')
-
-
-# plotting dots
-seq_data = np.load(f"data/seqRegion_{SEQ_LENGTH}.npy", allow_pickle=True)
-for i in range(seq_data.shape[0]):
-    item = seq_data[i, :, :]
-    for id in range(item.shape[0]):
-        """ 8 for sea, 6 for water """
-        if int(item[id, -2]) == 6: 
-            lon, lat = item[id, 6], item[id, 7]
-            ax.scatter(lon, lat, c='black', marker='x', s=5)
+# gdf1 = gpd.read_file('../Japan_Data/gadm41_JPN_shp/gadm41_JPN_1.shp')
+# gdf1.boundary.plot(ax=ax, color='gray', label='Level 1')
 
 
-plt.xticks([])
-plt.yticks([])
+# # plotting dots
+# seq_data = np.load(f"data/seqRegion_{SEQ_LENGTH}.npy", allow_pickle=True)
+# for i in range(seq_data.shape[0]):
+#     item = seq_data[i, :, :]
+#     for id in range(item.shape[0]):
+#         """ 8 for sea, 6 for water """
+#         if int(item[id, -2]) == 6: 
+#             lon, lat = item[id, 6], item[id, 7]
+#             ax.scatter(lon, lat, c='black', marker='x', s=5)
+
+
+# plt.xticks([])
+# plt.yticks([])
 plt.show()

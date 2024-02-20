@@ -120,7 +120,10 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
     if model_name == 'Hybrid_LSTM_new':
         model = HybridLSTM(input_size=train_seq.shape[2], hidden_size=hidden_layers, num_layers=num_layers, 
                            output_size=len(set(y_cluster)), static_feature_size=train_static.shape[1], fc_layer=fc_layer).to(device)
-
+    elif model_name == 'Hybrid_GRU_new':
+        model = HybridGRU(input_size=train_seq.shape[2], hidden_size=hidden_layers, num_layers=num_layers, 
+                           output_size=len(set(y_cluster)), static_feature_size=train_static.shape[1], fc_layer=fc_layer).to(device)
+   
 
     # Define the loss function with weights
     criterion = nn.CrossEntropyLoss()
@@ -157,6 +160,9 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
     if model_name == 'Hybrid_LSTM_new':
         model = HybridLSTM(input_size=train_seq.shape[2], hidden_size=hidden_layers, num_layers=num_layers, 
                            output_size=len(set(y_cluster)), static_feature_size=train_static.shape[1], fc_layer=fc_layer).to(device)
+    elif model_name == 'Hybrid_GRU_new':
+        model = HybridGRU(input_size=train_seq.shape[2], hidden_size=hidden_layers, num_layers=num_layers, 
+                           output_size=len(set(y_cluster)), static_feature_size=train_static.shape[1], fc_layer=fc_layer).to(device)
    
     model.load_state_dict(torch.load(os.path.join(md_path, f'{model_name}_model_{SEQ_LENGTH}_{md_param}.pth')))
     model.eval()
@@ -165,19 +171,17 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
 
 # Tuning model
 if __name__ == '__main__':
-    hl_list = [64, 128]
-    fc_list = [64]
+    hl_list = [32, 64, 128]
+    fc_list = [32, 64]
     lr_list = [0.005]
-    nl_list = [2,3] 
+    nl_list = [2, 3] 
     for hl in hl_list:
         for fc in fc_list:
             for lr in lr_list:
                 for nl in nl_list:
-                    if nl == 2 and hl == 64:
-                        continue
                     print('----------------------------------')
                     print(f'hl_{hl}_fc_{fc}_lr_{lr}_nl_{nl}')
-                    train_and_test(model_name = 'Hybrid_LSTM_new', 
+                    train_and_test(model_name = 'Hybrid_GRU_new', 
                                 hidden_layers = hl,
                                 lr_rate = lr,
                                 fc_layer = fc,

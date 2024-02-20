@@ -62,17 +62,17 @@ class HybridLSTM(nn.Module):
 
 # Hybrid GRU Model
 class HybridGRU(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, output_size, static_feature_size, fc_layer=64, drop_prob=0.2):
+    def __init__(self, input_size, hidden_size, num_layers, output_size, static_feature_size, fc_layer=64, drop_prob=0):
         super(HybridGRU, self).__init__()
         self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True, dropout=drop_prob).to(device)
-        self.bn = nn.BatchNorm1d(hidden_size).to(device)  # Batch normalization layer
+        # self.bn = nn.BatchNorm1d(hidden_size).to(device)  # Batch normalization layer
         self.fc1 = nn.Linear(hidden_size + static_feature_size, fc_layer).to(device)
         self.fc2 = nn.Linear(fc_layer, output_size).to(device)
         self.relu = nn.ReLU().to(device)
 
     def forward(self, sequence, static_features):  # Sequence, Static
         gru_out, _ = self.gru(sequence)
-        gru_out = self.bn(gru_out.permute(0, 2, 1)).permute(0, 2, 1)  # Apply batch normalization
+        # gru_out = self.bn(gru_out.permute(0, 2, 1)).permute(0, 2, 1)  # Apply batch normalization
         gru_out = gru_out[:, -1, :]  # Get the output from the last time step
 
         # Concatenate GRU output with static features

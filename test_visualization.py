@@ -326,15 +326,15 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
 
 
     """ Statistics for wrongly prediction only for seq_length=4 """
-    tp_dict = dict()
-    for i in trip_purpose.values():
-        tp_dict[i] = 0
+    # tp_dict = dict()
+    # for i in trip_purpose.values():
+    #     tp_dict[i] = 0
         
-    for i in range(test_data_orig.shape[0]):
-        if adj_wrong_mask[i]:
-            tp_dict[trip_purpose[test_data_orig[i, -1, 4]]] += 1
+    # for i in range(test_data_orig.shape[0]):
+    #     if adj_wrong_mask[i]:
+    #         tp_dict[trip_purpose[test_data_orig[i, -1, 4]]] += 1
     
-    print(tp_dict)
+    # print(tp_dict)
     
     
     # Use folium to create the map

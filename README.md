@@ -106,21 +106,4 @@ fc_layers = 64, lr = 0.005
 
 ### 0213
 New Concept: Stay -> Move -> Stay -> Move -> Prediction
-
-hl_32_fc_64_lr_0.005_nl_2: 79.95 %
-
-hl_32_fc_64_lr_0.005_nl_3: 81.42 %
-
-hl_32_fc_64_lr_0.01_nl_2: 81.35 %
-
-hl_32_fc_64_lr_0.01_nl_3: 81.58 %
-
-hl_64_fc_64_lr_0.005_nl_2: 81.43 %
-
-hl_64_fc_64_lr_0.005_nl_3: 81.78 %
-
-hl_64_fc_64_lr_0.01_nl_3: 81.79 %
-
-hl_128_fc_64_lr_0.005_nl_3: 81.91 %
-
-hl_128_fc_64_lr_0.01_nl_3: 81.73 %
+Best of all: hl_128_fc_64_lr_0.005_nl_3: 81.91 %
