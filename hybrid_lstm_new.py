@@ -171,14 +171,16 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
 
 # Tuning model
 if __name__ == '__main__':
-    hl_list = [32, 64, 128]
-    fc_list = [32, 64]
+    hl_list = [128, 64]
+    fc_list = [64, 32]
     lr_list = [0.005]
-    nl_list = [2, 3] 
+    nl_list = [3] 
     for hl in hl_list:
         for fc in fc_list:
             for lr in lr_list:
                 for nl in nl_list:
+                    if hl == 64 and fc == 32:
+                        continue
                     print('----------------------------------')
                     print(f'hl_{hl}_fc_{fc}_lr_{lr}_nl_{nl}')
                     train_and_test(model_name = 'Hybrid_GRU_new', 
