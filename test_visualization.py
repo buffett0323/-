@@ -179,8 +179,8 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
             cor_cnt[l] += 1
         ttl_cnt[l] += 1
 
-    acc_100 = [round(i*100/j, 1) if j != 0 else 0 for i, j in zip(cor_cnt, ttl_cnt)]
-    acc_frac = [str(Fraction(i, j)) if j != 0 else 0 for i, j in zip(cor_cnt, ttl_cnt)]
+    acc_100 = [round(i/j, 3) if j != 0 else 0 for i, j in zip(cor_cnt, ttl_cnt)]
+    acc_frac = [f'{i}/{j}' for i, j in zip(cor_cnt, ttl_cnt)]
 
     seq_data = np.load(f'{path}/newDataShift_{SEQ_LENGTH}.npy', allow_pickle=True) # (6, 770400, 8)
     seq_2d = seq_data.reshape(seq_data.shape[0] * seq_data.shape[1], seq_data.shape[2])
