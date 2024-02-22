@@ -239,13 +239,6 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
     m = folium.Map(location=[average_latitude, average_longitude], zoom_start=8)
     # m.add_child(folium.ScaleControl(position='bottomleft'))
 
-    # Add the color scale to the map
-    color_scale = cm.linear.YlOrRd_09.scale(0, 100).to_step(10)
-    color_scale.caption = 'Accuracy'
-    m.add_child(color_scale)
-
-
-
     linear = cm.LinearColormap(
         ['#ffff00', '#ffd700', '#ffcc66', '#ff9900', '#ff6600', '#ff0000'],  # hexadecimal color codes
         vmin=gdf2['acc_float'].min(),
