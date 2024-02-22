@@ -2,14 +2,15 @@ import os
 import folium
 import json
 import torch
+import branca
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import geopandas as gpd
-import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
+import branca.colormap as cm
 
 from fractions import Fraction
 from shapely.geometry import Polygon
@@ -27,7 +28,7 @@ def generate_popup(row):
 # Define a function to style the polygons
 def style_function(feature):
     return {
-        'fillColor': '#ffff00',  # or some logic to choose color
+        'fillColor': 'none',
         'color': 'black',
         'weight': 1,
         'dashArray': '5, 5'
@@ -235,21 +236,59 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
     gdf2_json = gdf2.to_json()
     average_longitude = (min_lon + max_lon) / 2
     average_latitude = (min_lat + max_lat) / 2
-    m = folium.Map(location=[average_latitude, average_longitude], zoom_start=5)
+    m = folium.Map(location=[average_latitude, average_longitude], zoom_start=8)
+    # m.add_child(folium.ScaleControl(position='bottomleft'))
 
-    # Add Choropleth layer
-    ch_layer = folium.Choropleth(
-        geo_data=gdf2_json,
-        name='Choropleth',
-        data=gdf2,
-        columns=['GID_2', 'acc_float'],  # Adjust these column names based on your DataFrame
-        key_on='feature.properties.GID_2',  # This should match the GeoJSON property name
-        fill_color='YlOrRd',  # Choose a color palette
-        fill_opacity=0.7,
-        line_opacity=0.2,
-        legend_name='Accuracy'
+    # Add the color scale to the map
+    color_scale = cm.linear.YlOrRd_09.scale(0, 100).to_step(10)
+    color_scale.caption = 'Accuracy'
+    m.add_child(color_scale)
+
+
+
+    linear = cm.LinearColormap(
+        ['#ffff00', '#ffd700', '#ffcc66', '#ff9900', '#ff6600', '#ff0000'],  # hexadecimal color codes
+        vmin=gdf2['acc_float'].min(),
+        vmax=gdf2['acc_float'].max()
     )
-    ch_layer.add_to(m, name='Choropleth Layer')
+    
+    # Get acc_float color 
+    def style_function3(feature):
+        acc = feature['properties']['acc_float']
+        return {
+            'fillColor': linear(acc),
+            'color': 'black',  # polygon line color
+            'weight': 1,  # polygon line width
+            'fillOpacity': 0.7
+        }
+
+    geojson_layer = folium.GeoJson(
+        gdf2_json,
+        style_function=style_function3,
+        name='Accuracy'
+    )
+    
+    linear.caption = 'Accuracy'
+    m.add_child(linear)
+    geojson_layer.add_to(m)
+
+
+
+    # # Define the HTML to move the legend to the bottom right
+    # legend_style = '''
+    # <style>
+    #     .leaflet-control-layers.leaflet-control {
+    #     position: fixed;
+    #     bottom: 20px;
+    #     right: 20px;
+    #     z-index: 9999;
+    #     }
+    # </style>
+    # '''
+
+    # # Add the style to the map
+    # m.get_root().html.add_child(folium.Element(legend_style))
+
 
     # Create a GeoJson layer with a tooltip
     geojson_data = json.loads(gdf2_json)
