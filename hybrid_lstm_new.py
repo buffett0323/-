@@ -35,7 +35,7 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
     ohe = False, remove_min_grp = True,
     md_param = ''
 ):
-    
+    print(f'Sequence length: {SEQ_LENGTH}')
     LOOKBACK = SEQ_LENGTH - 1
     num_epochs = 200
     
@@ -171,23 +171,11 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
 
 # Tuning model
 if __name__ == '__main__':
-    hl_list = [128, 64]
-    fc_list = [64, 32]
-    lr_list = [0.005]
-    nl_list = [3] 
-    for hl in hl_list:
-        for fc in fc_list:
-            for lr in lr_list:
-                for nl in nl_list:
-                    if hl == 64 and fc == 32:
-                        continue
-                    print('----------------------------------')
-                    print(f'hl_{hl}_fc_{fc}_lr_{lr}_nl_{nl}')
-                    train_and_test(model_name = 'Hybrid_GRU_new', 
-                                hidden_layers = hl,
-                                lr_rate = lr,
-                                fc_layer = fc,
-                                num_layers = nl,
-                                md_param = f'hl_{hl}_fc_{fc}_lr_{lr}_nl_{nl}')
-        
+    for i in range(4, 10):
+        SEQ_LENGTH = i
+        train_and_test(model_name = 'Hybrid_GRU_new', 
+                        hidden_layers = 128,
+                        fc_layer = 64,
+                        num_layers = 3,
+                        md_param = f'final')
 

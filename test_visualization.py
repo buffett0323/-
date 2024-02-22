@@ -267,22 +267,6 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
 
 
 
-    # # Define the HTML to move the legend to the bottom right
-    # legend_style = '''
-    # <style>
-    #     .leaflet-control-layers.leaflet-control {
-    #     position: fixed;
-    #     bottom: 20px;
-    #     right: 20px;
-    #     z-index: 9999;
-    #     }
-    # </style>
-    # '''
-
-    # # Add the style to the map
-    # m.get_root().html.add_child(folium.Element(legend_style))
-
-
     # Create a GeoJson layer with a tooltip
     geojson_data = json.loads(gdf2_json)
     geojson_layer = folium.GeoJson(
@@ -410,25 +394,25 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     """ 1. Do the data analysis for trip purpose """
     acc_tp = dict()
     for tp, tp_val in trip_purpose.items():
-        # if tp != 99:
-        mask = [True if i == tp else False for i in test_data_orig[:, -1, 4].tolist()]
-        test_seq1 = test_seq[mask]
-        test_static1 = test_static[mask]
-        test_labels1 = [val for val, mask in zip(test_labels, mask) if mask]
-        
-        model.eval()
-        with torch.no_grad():
-            outputs1 = model(test_seq1, test_static1)
-            pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
-            # accuracy1 = accuracy_score(test_labels1, pred1)
-            # acc_tp[tp_val] = round(accuracy1 * 100, 1)
+        if tp != 99:
+            mask = [True if i == tp else False for i in test_data_orig[:, -1, 4].tolist()]
+            test_seq1 = test_seq[mask]
+            test_static1 = test_static[mask]
+            test_labels1 = [val for val, mask in zip(test_labels, mask) if mask]
             
-            # Get the correct count by using adjacency matrix
-            correct_cnt = 0
-            for act, pr in zip(test_labels1, pred1):
-                if adj_mat_df.loc[act, pr] == 1:
-                    correct_cnt += 1
-            acc_tp[tp_val] = round(100 * correct_cnt/len(pred1), 2)
+            model.eval()
+            with torch.no_grad():
+                outputs1 = model(test_seq1, test_static1)
+                pred1 = torch.argmax(outputs1, dim=1).cpu().tolist()
+                # accuracy1 = accuracy_score(test_labels1, pred1)
+                # acc_tp[tp_val] = round(accuracy1 * 100, 1)
+                
+                # Get the correct count by using adjacency matrix
+                correct_cnt = 0
+                for act, pr in zip(test_labels1, pred1):
+                    if adj_mat_df.loc[act, pr] == 1:
+                        correct_cnt += 1
+                acc_tp[tp_val] = round(100 * correct_cnt/len(pred1), 2)
             
 
     sorted_accuracy = sorted(acc_tp.items(), key=lambda x: x[1], reverse=True)
@@ -451,7 +435,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     """ 2. Do the data analysis for transport type """
     acc_tt = dict()
     for tt, tt_val in transport_type.items():
-        if tt != 99: # tt != 15 and tt != 97 and
+        if tt != 15 and tt != 97 and tt != 99: 
             mask = [True if i == tt else False for i in test_data_orig[:, -1, 5].tolist()]
             if mask.count(True) == 0: continue
             test_seq1 = test_seq[mask]
