@@ -79,4 +79,4 @@ plt.show()
 
 # plt.xticks([])
 # plt.yticks([])
-plt.show()
+# plt.show()

@@ -111,4 +111,4 @@ Best of all: hl_128_fc_64_lr_0.005_nl_3: 81.91 %
 
 ### 0221
 Hybrid GRU testing
-Best of all: hl_64_fc_32_lr_0.005_nl_3: 87.09 %
+Best of all: hl_128_fc_64_lr_0.005_nl_3: 87.63 %
