@@ -19,7 +19,7 @@ fig.add_trace(go.Bar(
     name='Hybrid GRU',
     text=hybrid_gru_accuracies, 
     textposition='auto', 
-    marker_color='lightblue'
+    marker_color='lightgreen'
 ))
 
 # Adding basic model accuracies
@@ -29,12 +29,21 @@ fig.add_trace(go.Bar(
     name='Basic LSTM',
     text=basic_accuracies, 
     textposition='auto', 
-    marker_color='lightgreen'
+    marker_color='lightblue'
 ))
 
 # Customizing the layout with a lighter theme
 fig.update_layout(
-    title='Accuracy Comparison of Hybrid GRU and Basic LSTM Models',
+    xaxis=dict(
+        title='Sequence Length',
+        tickfont=dict(size=15, color='black')),
+    title={
+        'text': 'Accuracies under different sequence length',
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'},
+    title_font=dict(size=24, color='Black', family='Arial, sans-serif'),
     xaxis_title='Sequence Length',
     yaxis_title='Accuracy (%)',
     yaxis=dict(range=[0, 100]),
@@ -47,4 +56,4 @@ fig.show()
 
 # Save the figure to a file
 file_path = '../plotly_result/hybrid_vs_basic_accuracy_chart.png'
-pio.write_image(fig, file_path)
+pio.write_image(fig, file_path, width=1920, height=1080, scale=2) 
