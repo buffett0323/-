@@ -345,15 +345,15 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     mode1, mode2, mode3 = 0, 0, 0
     
     for i in range(test_data_orig.shape[0]):
-        if int(test_data_orig[i, 0, 5]) != 97 and int(test_data_orig[i, 1, 5]) == 97 and int(test_data_orig[i, 2, 5]) != 97:
+        if int(test_data_orig[i, 0, 5]) != 97 and int(test_data_orig[i, 1, 5]) == 97 and int(test_data_orig[i, 2, 5]) != 97:# and int(test_data_orig[i, 3, 5]) == 97:
             mode1 += 1
-        elif int(test_data_orig[i, 0, 5]) == 97 and int(test_data_orig[i, 1, 5]) != 97 and int(test_data_orig[i, 2, 5]) == 97:
+        elif int(test_data_orig[i, 0, 5]) == 97 and int(test_data_orig[i, 1, 5]) != 97 and int(test_data_orig[i, 2, 5]) == 97:# and int(test_data_orig[i, 3, 5]) != 97:
             mode2 += 1
         else:
             mode3 += 1
- 
-    # print(mode1/test_data_orig.shape[0], mode2/test_data_orig.shape[0], mode3/test_data_orig.shape[0])
     
+    # print(mode1/test_data_orig.shape[0], mode2/test_data_orig.shape[0], mode3/test_data_orig.shape[0])
+
     
     # Use folium to create the map
     gdf2_json = json.loads(gdf2.to_json())
