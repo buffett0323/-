@@ -115,6 +115,9 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
     if model_name == 'Hybrid_LSTM_new':
         model = HybridLSTM(input_size=train_seq.shape[2], hidden_size=hidden_layers, num_layers=num_layers, 
                            output_size=len(set(y_cluster)), static_feature_size=train_static.shape[1], fc_layer=fc_layer).to(device)
+    elif model_name == 'Hybrid_GRU_new':
+        model = HybridGRU(input_size=train_seq.shape[2], hidden_size=hidden_layers, num_layers=num_layers, 
+                           output_size=len(set(y_cluster)), static_feature_size=train_static.shape[1], fc_layer=fc_layer).to(device)
    
     model.load_state_dict(torch.load(os.path.join(md_path, f'{model_name}_model_{SEQ_LENGTH}_{md_param}.pth')))
     model.eval()
@@ -127,10 +130,10 @@ if __name__ == '__main__':
     nl = 3
     fc = 64
     lr = 0.005
-    train_and_test(model_name = 'Hybrid_LSTM_new', 
+    train_and_test(model_name = 'Hybrid_GRU_new', 
                     hidden_layers = hl,
                     fc_layer = fc,
                     num_layers = nl,
-                    md_param = f'hl_{hl}_fc_{fc}_lr_{lr}_nl_{nl}')
+                    md_param = 'final')
 
 
