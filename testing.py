@@ -81,7 +81,7 @@ def testing_hybrid(model, criterion, test_seq, test_static, test_data, test_labe
         
         get_hybrid_adj_acc(test_labels.cpu(), pred.cpu())
         visualize_admin_result(test_labels.cpu(), pred.cpu(), clust_cnt, md_param=md_param)
-        # model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler)
+        model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler)
 
     return round(accuracy*100, 2)
 

@@ -221,11 +221,11 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
     ax.legend(loc='upper left')
 
     accuracy = accuracy_score(test_labels.cpu(), pred.cpu())
-    plt.title(f'Level 2 Prediction: Test Accuracy = {round(accuracy*100, 2)}%')
+    plt.title(f'Level 2 Prediction: Test Accuracy = {round(accuracy, 4)}')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     plt.savefig(f'{path}/visual_lv2_test_seq_{SEQ_LENGTH}_{md_param}.png', dpi=300)
-    plt.show()
+    # plt.show()
     
     
     
