@@ -11,6 +11,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 import branca.colormap as cm
+import cartopy.io.img_tiles as cimgt
+import cartopy.crs as ccrs
+import contextily as ctx
 
 from fractions import Fraction
 from shapely.geometry import Polygon
@@ -197,7 +200,6 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
         'acc_frac': acc_frac
     })
     
-    # Plotting
     fig, ax = plt.subplots()
     gdf2 = gpd.read_file('../Japan_Data/gadm41_JPN_shp/gadm41_JPN_2.shp')
     gdf1 = gpd.read_file('../Japan_Data/gadm41_JPN_shp/gadm41_JPN_1.shp')
@@ -210,26 +212,21 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
     gdf1.boundary.plot(ax=ax, color='black', label='Level 1', alpha=0.2, linewidth=0.5)
     gdf2.plot(column='acc_float', ax=ax, legend=True, cmap='OrRd')
 
-
-    # # Annotate the plot
-    # for idx, row in gdf2.iterrows():
-    #     centroid = row.geometry.centroid # Get the centroid of the polygon
-    #     plt.annotate(text=row['acc_frac'], xy=(centroid.x, centroid.y), xytext=(3,3), ha='center', va='center', fontsize=4, textcoords="offset points")
-
-    longitude_range = [138.7, 140.5]
-    latitude_range = [34.8, 36.5]
+    longitude_range = [138.7, 140.6]
+    latitude_range = [34.8, 36.6]
     ax.set_xlim(longitude_range)
     ax.set_ylim(latitude_range)
     ax.tick_params(axis='x', labelsize=7)  
     ax.tick_params(axis='y', labelsize=7)
-    ax.legend()
+    ax.legend(loc='upper left')
 
     accuracy = accuracy_score(test_labels.cpu(), pred.cpu())
-    plt.title(f'Japan Level 2 Prediction: Test Accuracy = {round(accuracy*100, 2)}%')
+    plt.title(f'Level 2 Prediction: Test Accuracy = {round(accuracy*100, 2)}%')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     plt.savefig(f'{path}/visual_lv2_test_seq_{SEQ_LENGTH}_{md_param}.png', dpi=300)
-    # plt.show()
+    plt.show()
+    
     
     
     # Create a Folium map & Adjust the location and zoom_start as needed
