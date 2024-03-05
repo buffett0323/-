@@ -333,24 +333,25 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     
     # Get the wrongly predicted adjacency mask
     adj_wrong_mask = [False if adj_mat_df.loc[int(act), int(pr)] == 1 else True for act, pr in zip(test_labels, pred)]
+    adj_right_mask = [True if adj_mat_df.loc[int(act), int(pr)] == 1 else False for act, pr in zip(test_labels, pred)]
     y_wrong = [val for val, mask in zip(test_labels, adj_wrong_mask) if mask]
     pred_wrong = [val for val, mask in zip(pred, adj_wrong_mask) if mask]    
 
 
 
     """ Statistics for wrongly prediction only for seq_length=4 """
-    mode1, mode2, mode3 = 0, 0, 0
-    
-    for i in range(test_data_orig.shape[0]):
-        if int(test_data_orig[i, 0, 5]) != 97 and int(test_data_orig[i, 1, 5]) == 97 and int(test_data_orig[i, 2, 5]) != 97:# and int(test_data_orig[i, 3, 5]) == 97:
-            mode1 += 1
-        elif int(test_data_orig[i, 0, 5]) == 97 and int(test_data_orig[i, 1, 5]) != 97 and int(test_data_orig[i, 2, 5]) == 97:# and int(test_data_orig[i, 3, 5]) != 97:
-            mode2 += 1
-        else:
-            mode3 += 1
-    
-    # print(mode1/test_data_orig.shape[0], mode2/test_data_orig.shape[0], mode3/test_data_orig.shape[0])
-
+    wrong_data = pd.DataFrame(test_data_orig[adj_wrong_mask].reshape(-1, LOOKBACK * test_data_orig.shape[-1]))
+    right_data = pd.DataFrame(test_data_orig[adj_right_mask].reshape(-1, LOOKBACK * test_data_orig.shape[-1]))
+    orig_name = ['time', 'gender', 'age', 'work', 'trip_purpose', 'transport_type', 'long', 'lat', 'landuse', 'hour']
+    col_name = []
+    for i in range(LOOKBACK):
+        for j in orig_name:
+            col_name.append(j+str(i))
+    wrong_data.columns = col_name
+    right_data.columns = col_name
+    wrong_data.describe().to_csv('visualization/wrong_data_describe.csv')
+    right_data.describe().to_csv('visualization/right_data_describe.csv')
+    return
     
     # Use folium to create the map
     gdf2_json = json.loads(gdf2.to_json())
@@ -393,7 +394,7 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     """ 1. Do the data analysis for trip purpose """
     acc_tp = dict()
     for tp, tp_val in trip_purpose.items():
-        if tp != 99:
+        if tp != 99 and tp != 8 and tp != 14:
             mask = [True if i == tp else False for i in test_data_orig[:, -1, 4].tolist()]
             test_seq1 = test_seq[mask]
             test_static1 = test_static[mask]
@@ -418,7 +419,17 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     labels, accuracies = zip(*sorted_accuracy)
 
     # Create the Plotly bar chart
-    fig = go.Figure(data=[go.Bar(x=labels, y=accuracies, text=accuracies, textposition='auto', marker_color='lightblue')])
+    fig = go.Figure(data=[
+        go.Bar(
+            x=labels,
+            y=accuracies,
+            text=accuracies,
+            textposition='auto',
+            marker_color='lightblue',
+            textangle=90,
+            textfont=dict(size=12)
+        )
+    ])
     fig.update_layout(
         title='Different Trip Purpose', 
         xaxis_title='Trip Purpose', 
