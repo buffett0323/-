@@ -171,11 +171,10 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
 
 # Tuning model
 if __name__ == '__main__':
-    for i in range(4, 10):
-        SEQ_LENGTH = i
-        train_and_test(model_name = 'Hybrid_GRU_new', 
-                        hidden_layers = 128,
-                        fc_layer = 64,
-                        num_layers = 3,
-                        md_param = f'final')
+
+    train_and_test(model_name = 'Hybrid_GRU_new', 
+                    hidden_layers = 128,
+                    fc_layer = 64,
+                    num_layers = 3,
+                    md_param = f'final')
 
