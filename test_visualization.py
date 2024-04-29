@@ -340,18 +340,18 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
 
 
     """ Statistics for wrongly prediction only for seq_length=4 """
-    wrong_data = pd.DataFrame(test_data_orig[adj_wrong_mask].reshape(-1, LOOKBACK * test_data_orig.shape[-1]))
-    right_data = pd.DataFrame(test_data_orig[adj_right_mask].reshape(-1, LOOKBACK * test_data_orig.shape[-1]))
-    orig_name = ['time', 'gender', 'age', 'work', 'trip_purpose', 'transport_type', 'long', 'lat', 'landuse', 'hour']
-    col_name = []
-    for i in range(LOOKBACK):
-        for j in orig_name:
-            col_name.append(j+str(i))
-    wrong_data.columns = col_name
-    right_data.columns = col_name
-    wrong_data.describe().to_csv('visualization/wrong_data_describe.csv')
-    right_data.describe().to_csv('visualization/right_data_describe.csv')
-    return
+    # wrong_data = pd.DataFrame(test_data_orig[adj_wrong_mask].reshape(-1, LOOKBACK * test_data_orig.shape[-1]))
+    # right_data = pd.DataFrame(test_data_orig[adj_right_mask].reshape(-1, LOOKBACK * test_data_orig.shape[-1]))
+    # orig_name = ['time', 'gender', 'age', 'work', 'trip_purpose', 'transport_type', 'long', 'lat', 'landuse', 'hour']
+    # col_name = []
+    # for i in range(LOOKBACK):
+    #     for j in orig_name:
+    #         col_name.append(j+str(i))
+    # wrong_data.columns = col_name
+    # right_data.columns = col_name
+    # wrong_data.describe().to_csv('visualization/wrong_data_describe.csv')
+    # right_data.describe().to_csv('visualization/right_data_describe.csv')
+    # return
     
     # Use folium to create the map
     gdf2_json = json.loads(gdf2.to_json())
