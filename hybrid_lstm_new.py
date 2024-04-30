@@ -40,7 +40,7 @@ def train_and_test(model_name = 'Hybrid_LSTM_new',
     num_epochs = 200
     
     # Sequence data with sequence length
-    seq_data = np.load(f'{path}/newDataShift_{SEQ_LENGTH}.npy', allow_pickle=True) # (6, 770400, 8)
+    seq_data = np.load(f'{path}/trans_{SEQ_LENGTH}.npy', allow_pickle=True) # (6, 770400, 8)
     seq_data = np.transpose(seq_data, (1, 0, 2))
     
     seq_x = seq_data[:LOOKBACK, :, 1: -3].astype(np.float64) # Temporarily remove 0 (the time)
@@ -175,5 +175,5 @@ if __name__ == '__main__':
                     hidden_layers = 128,
                     fc_layer = 64,
                     num_layers = 3,
-                    md_param = f'final')
+                    md_param = f'0429')
 

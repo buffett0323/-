@@ -186,7 +186,7 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
     acc_100 = [round(i/j, 3) if j != 0 else 0 for i, j in zip(cor_cnt, ttl_cnt)]
     acc_frac = [f'{i}/{j}' for i, j in zip(cor_cnt, ttl_cnt)]
 
-    seq_data = np.load(f'{path}/newDataShift_{SEQ_LENGTH}.npy', allow_pickle=True) # (6, 770400, 8)
+    seq_data = np.load(f'{path}/trans_{SEQ_LENGTH}.npy', allow_pickle=True) # (6, 770400, 8)
     seq_2d = seq_data.reshape(seq_data.shape[0] * seq_data.shape[1], seq_data.shape[2])
     max_lon, min_lon = max(seq_2d[:,6].tolist()), min(seq_2d[:,6].tolist())
     max_lat, min_lat = max(seq_2d[:,7].tolist()), min(seq_2d[:,7].tolist())
@@ -224,7 +224,7 @@ def visualize_admin_result(test_labels, pred, clust_cnt, md_param=''):
     plt.title(f'Level 2 Prediction: Test Accuracy = {round(accuracy, 4)}')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
-    plt.savefig(f'{path}/visual_lv2_test_seq_{SEQ_LENGTH}_{md_param}.png', dpi=300)
+    plt.savefig(f'{path}/visual_0429_{SEQ_LENGTH}_{md_param}.png', dpi=300)
     # plt.show()
     
     
@@ -631,61 +631,3 @@ def model_comp(model, test_seq, test_static, test_data, test_labels, x_scaler):
     pio.write_image(fig, file_path)
     
     
-    
-    # """ 6. Use ML Methods to get the features """
-    # X_seq = test_seq.reshape((test_seq.shape[0], test_seq.shape[1] * test_seq.shape[2]))
-    # X_train = np.concatenate((test_static, X_seq), axis=1)
-    # y_train = [1 if i == True else 0 for i in wrong_mask]
-
-    
-    # rf_model = RandomForestClassifier()
-    # rf_model.fit(X_train, y_train)
-
-    # importances = rf_model.feature_importances_
-    # col = ["Gender", "Age", "Work"]
-    # for i in range(LOOKBACK):
-    #     for j in ["Time_diff", "Trip_purpose", "Transport", "Long", "Lat", "Landuse", "LandCover"]:
-    #         col.append(f'{j}_{i+1}')
-    
-    # # Create a DataFrame for plotting
-    # importance_df = pd.DataFrame({
-    #     'Feature': col,
-    #     'Importance': importances
-    # })
-
-    # # Sort the DataFrame by importance for better visualization
-    # importance_df = importance_df.sort_values('Importance', ascending=False)
-
-    # # Create the bar plot using Plotly
-    # fig = px.bar(importance_df, x='Importance', y='Feature', orientation='h', title='Feature Importances')
-    # fig.update_layout(yaxis={'categoryorder':'total ascending'})
-    # file_path = 'plotly_result/rf_importance_plotly.png'
-    # pio.write_image(fig, file_path)
-    
-    
-    
-    # """ 7. Final analysis for the most importance part """
-    # time_diff_last_wrong = test_data_wrong[:, LOOKBACK-1, 0].tolist()
-    # time_diff_last_right = test_data_right[:, LOOKBACK-1, 0].tolist()
-
-    # fig = go.Figure()
-    # fig.add_trace(go.Box(y=time_diff_last_wrong, name='wrong'))
-    # fig.add_trace(go.Box(y=time_diff_last_right, name='right'))
-
-    # fig.update_layout(
-    #     title='Box Plot of last time diff for wrong and right prediction',
-    #     yaxis_title='Values',
-    #     boxmode='group'
-    # )
-
-    # # Show the plot
-    # # fig.show()
-    # fig.write_html('plotly_result/last_time_diff.html')
-    
-    # file_path = 'plotly_result/last_time_diff.png'
-    # pio.write_image(fig, file_path)
-
-    
-
-
-

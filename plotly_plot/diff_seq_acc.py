@@ -5,8 +5,8 @@ import plotly.io as pio
 sequences = ['3', '4', '5', '6', '7', '8']
 
 # Accuracies list
-hybrid_gru_accuracies = [87.68, 84.2, 85.99, 82.67, 86.14, 81.81]
-hybrid_gru_adj_accuracies = [96.04, 94.82, 96.01, 94.95, 96.65, 95.33]
+hybrid_gru_accuracies = [79.27, 75.63, 77.42, 74.1, 77.57, 73.24]
+hybrid_gru_adj_accuracies = [91.99, 90.77, 91.96, 90.9, 92.6, 91.28]
 # basic_accuracies = [84.28, 81.52, 82.96, 79.21, 82.41, 79.73]
 
 hybrid_gru_accuracies = [round(float(i / 100), 4) for i in hybrid_gru_accuracies]

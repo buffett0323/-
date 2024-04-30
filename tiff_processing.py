@@ -3,6 +3,7 @@ import rasterio
 import pandas as pd
 import numpy as np
 import os
+from params import SEQ_LENGTH
 
 lat_range = [34, 35, 36]
 lon_range = [138, 139, 140]
@@ -38,30 +39,28 @@ def lat_lon_to_indices(lon, lat):
 
 # Main
 if __name__ == '__main__':
-    for seq in [4,5,6,7,8,9]:
-        SEQ_LENGTH = seq
-        seq_data = np.load(f'data/newData_{SEQ_LENGTH}.npy', allow_pickle=True)
-        seq_2d = seq_data.reshape(seq_data.shape[0] * seq_data.shape[1], seq_data.shape[2])
-        ll_trans = []
-        for i in range(seq_data.shape[0]):
-            for j in range(seq_data.shape[1]):
-                tmp = list(seq_data[i,j,:])
-                ll = lat_lon_to_indices(seq_data[i, j, 6], seq_data[i, j, 7])
-                if ll == -9999:
-                    print("Error"); break
-                else:
-                    ll_trans.append(ll)
-        
-        new_column = np.array(ll_trans).reshape((seq_data.shape[0] * seq_data.shape[1], 1)) # 2D
-        seq_2d = np.concatenate((seq_2d, new_column), axis=1)
-        
-        
-        last_col = seq_2d[:, -1].copy()
-        seq_2d[:, 10:] = seq_2d[:, 9:-1]
-        seq_2d[:, 9] = last_col
-        
-        seq_3d = seq_2d.reshape((int(seq_2d.shape[0]/SEQ_LENGTH), SEQ_LENGTH, seq_2d.shape[1]))
-        np.save(f'data/newDataShift_{SEQ_LENGTH}.npy', seq_3d)
-        print(f'Finish storing SEQ:{SEQ_LENGTH}!')
+    seq_data = np.load(f'data/trans_{SEQ_LENGTH}.npy', allow_pickle=True)
+    seq_2d = seq_data.reshape(seq_data.shape[0] * seq_data.shape[1], seq_data.shape[2])
+    ll_trans = []
+    for i in range(seq_data.shape[0]):
+        for j in range(seq_data.shape[1]):
+            tmp = list(seq_data[i,j,:])
+            ll = lat_lon_to_indices(seq_data[i, j, 6], seq_data[i, j, 7])
+            if ll == -9999:
+                print("Error"); break
+            else:
+                ll_trans.append(ll)
+    
+    new_column = np.array(ll_trans).reshape((seq_data.shape[0] * seq_data.shape[1], 1)) # 2D
+    seq_2d = np.concatenate((seq_2d, new_column), axis=1)
+    
+    
+    last_col = seq_2d[:, -1].copy()
+    seq_2d[:, 10:] = seq_2d[:, 9:-1]
+    seq_2d[:, 9] = last_col
+    
+    seq_3d = seq_2d.reshape((int(seq_2d.shape[0]/SEQ_LENGTH), SEQ_LENGTH, seq_2d.shape[1]))
+    np.save(f'data/trans_new_{SEQ_LENGTH}.npy', seq_3d)
+    print(f'Finish storing SEQ:{SEQ_LENGTH}!')
 
 
