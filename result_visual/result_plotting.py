@@ -117,23 +117,23 @@ work = get_key_by_value(occupation, st.selectbox("Work:", occupation.values()))
 # Dynamic features
 lon1 = st.number_input("Longitude at Seq1:", value=139.605314)
 lat1 = st.number_input("Latitude at Seq1:", value=35.427077)
-time1 = st.time_input("Choose a time at Seq1:", datetime.time(8, 50))
+time1 = st.time_input("Starting time at Seq1:", datetime.time(8, 50))
 trip1 = get_key_by_value(trip_purpose, st.selectbox("Trip at Seq1:", trip_purpose.values()))
 trans1 = get_key_by_value(transport_type, st.selectbox("Transport at Seq1:", transport_type.values()))
 
 lon2 = st.number_input("Longitude at Seq2:", value=139.604068)
 lat2 = st.number_input("Latitude at Seq2:", value=35.426279)
-time2 = st.time_input("Choose a time at Seq2:", datetime.time(9, 5))
+time2 = st.time_input("Starting time at Seq2:", datetime.time(9, 5))
 trip2 = get_key_by_value(trip_purpose, st.selectbox("Trip at Seq2:", trip_purpose.values()))
 trans2 = get_key_by_value(transport_type, st.selectbox("Transport at Seq2:", transport_type.values()))
 
 lon3 = st.number_input("Longitude at Seq3:", value=139.635925)
 lat3 = st.number_input("Latitude at Seq3:", value=35.445800)
-time3 = st.time_input("Choose a time at Seq3:", datetime.time(9, 25))
+time3 = st.time_input("Starting time at Seq3:", datetime.time(9, 25))
 trip3 = get_key_by_value(trip_purpose, st.selectbox("Trip at Seq3:", trip_purpose.values()))
 trans3 = get_key_by_value(transport_type, st.selectbox("Transport at Seq3:", transport_type.values()))
 
-time_last = st.time_input("Choose a time to predict:", datetime.time(10, 0))
+time_last = st.time_input("Set a time to predict:", datetime.time(10, 0))
 
 # Preprocessing of the data
 data = np.zeros((LOOKBACK, 9))
