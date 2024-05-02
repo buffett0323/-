@@ -171,7 +171,6 @@ if st.button("Predict Movement"):
         pred = int(torch.argmax(outputs, dim=1)[0])
         pred_gadm = gdf[gdf['GID_2'] == y_label[pred]].geometry
 
-
         # Streamlit app
         st.title("Prediction on map")
         location = [35.682839, 139.759455]  # Approximate location of the Imperial Palace in Tokyo
